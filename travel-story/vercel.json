@@ -2,8 +2,8 @@
   "redirects": [
     {
       "source": "/(.*)", 
-      "destination": "/", 
-      "permanent": true
+      "destination": "/"
+      
     }
   ]
 }
