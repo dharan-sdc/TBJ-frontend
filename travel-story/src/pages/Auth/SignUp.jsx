@@ -8,12 +8,16 @@ export default function SignUp() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent multiple submissions
 
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    console.log("Form submission started");
+
+    // Validation checks
     if (!fullName) {
       setError("Please enter your name!");
       return;
@@ -26,23 +30,31 @@ export default function SignUp() {
       setError("Please enter a password!");
       return;
     }
-    setError("");
+
+    setError(""); // Clear any previous errors
+    setIsSubmitting(true); // Disable button during submission
+
     try {
       const response = await axiosInstance.post("/create-account", {
         fullName,
         email,
         password,
       });
+
       if (response.data && response.data.accessToken) {
+        console.log("Account created successfully");
         localStorage.setItem("token", response.data.accessToken);
         navigate("/dashboard");
       }
     } catch (error) {
+      console.error("Error during signup:", error);
       if (error.response?.data?.message) {
         setError(error.response.data.message);
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false); // Re-enable the button
     }
   };
 
@@ -65,7 +77,9 @@ export default function SignUp() {
 
         <div className="w-5/4 h-[80vh] bg-white rounded-r-lg relative p-16 shadow-lg shadow-cyan-200/20">
           <form onSubmit={handleSignUp}>
-            <h4 className="text-2xl font-semibold mb-7">SignUp</h4>
+            <h4 className="text-2xl font-semibold mb-7">Sign Up</h4>
+
+            {/* Full Name Input */}
             <input
               type="text"
               placeholder="Full Name"
@@ -75,9 +89,12 @@ export default function SignUp() {
                 setError("");
               }}
               className="input-box"
+              required
             />
+
+            {/* Email Input */}
             <input
-              type="text"
+              type="email"
               placeholder="Email"
               value={email}
               onChange={({ target }) => {
@@ -85,7 +102,10 @@ export default function SignUp() {
                 setError("");
               }}
               className="input-box"
+              required
             />
+
+            {/* Password Input */}
             <PasswordInput
               value={password}
               onChange={({ target }) => {
@@ -93,11 +113,22 @@ export default function SignUp() {
                 setError("");
               }}
             />
+
+            {/* Error Message */}
             {error && <p className="text-red-500 pb-1">{error}</p>}
-            <button type="submit" className="btn-primary">
-              CREATE ACCOUNT
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className={`btn-primary ${isSubmitting ? "opacity-50" : ""}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating Account..." : "CREATE ACCOUNT"}
             </button>
+
             <p className="text-xs text-slate-500 text-center my-4">Or</p>
+
+            {/* Navigate to Login */}
             <button
               type="button"
               className="btn-primary btn-light"
